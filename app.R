@@ -2,20 +2,22 @@ library(shiny)
 library(stringr)
 
 shinyApp(
-  ui = function(req) {
-    fluidPage(
-      textInput("txt", "Text"),
-      checkboxInput("chk", "Checkbox")
-    )
-  },
-  server = function(input, output, session) {
-    observe({
-      # Trigger this observer every time an input changes
-      reactiveValuesToList(input)
-      session$doBookmark()
-    })
-    onBookmarked(function(url) {
-      updateQueryString(url)
-    })
-  }
-)
+  ui = fluidPage(
+      textInput("txt", "Enter new query string"),
+      helpText("Format: ?param1=val1&param2=val2"),
+      actionButton("go", "Update"),
+      hr(),
+      verbatimTextOutput("query")
+    ),
+    server = function(input, output, session) {
+      observeEvent(input$go, {
+        updateQueryString(input$txt, mode = "push")
+      })
+      output$query <- renderText({
+        query <- getQueryString()
+        queryText <- paste(names(query), query,
+                       sep = "=", collapse=", ")
+        paste("Your query string is:\n", queryText)
+      })
+    }
+  )
